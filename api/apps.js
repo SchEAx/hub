@@ -7,7 +7,10 @@ export async function GET(request){
       {id:"kasa",name:"KasaFlow",url:process.env.KASA_URL||""},
       {id:"ekran",name:"Ekran & Çerçeve",url:process.env.EKRAN_URL||"https://ekran-sayilan.vercel.app/"}
     ];
-    if(apps.some(x=>!/^https:\/\//.test(x.url)))return respond(503,{message:"KasaFlow adresi panel ayarlarında eksik."});
-    return respond(200,{apps});
+    return respond(200,{apps:apps.map(app=>{
+      let configured=false;
+      try{configured=new URL(app.url).protocol==="https:";}catch{}
+      return {...app,configured};
+    })});
   }catch(err){console.error("hub apps failed",err?.message);return respond(503,{message:"Program listesi alınamadı."});}
 }

@@ -18,22 +18,30 @@ async function request(url, options={}) {
   return body;
 }
 async function showApps(user) {
-  const result = await request("/api/apps");
-  apps = result.apps;
   document.getElementById("welcome").textContent = `Hoş geldin, ${user.name}`;
+  loginView.hidden=true;appsView.hidden=false;logout.hidden=false;
+  document.getElementById("app-error").textContent="";
+  try{
+    const result = await request("/api/apps");
+    apps = result.apps;
+  }catch(err){
+    document.getElementById("app-error").textContent=err.message;
+    return;
+  }
   const list = document.getElementById("apps");
   list.replaceChildren();
   apps.forEach((item,index)=>{
     const button=document.createElement("button"); button.type="button"; button.className="app-card";
+    button.disabled=!item.configured;
     const number=document.createElement("span"); number.className="number";number.textContent=`0${index+1} / PROGRAM`;
     const title=document.createElement("strong");title.textContent=item.name;
-    const action=document.createElement("span");action.className="open";action.textContent="Aç →";
+    const action=document.createElement("span");action.className="open";action.textContent=item.configured?"Aç →":"Adres ayarlanmadı";
     button.append(number,title,action);
     button.addEventListener("click",()=>openApp(item));list.append(button);
   });
-  loginView.hidden=true;appsView.hidden=false;logout.hidden=false;
 }
 function openApp(item){
+  if(!item.configured)return;
   const url=new URL(item.url);
   if(url.protocol!=="https:") return;
   const target=window.open(url.href,"_blank");
