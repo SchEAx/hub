@@ -14,3 +14,27 @@
 .program-frame[hidden]{display:none}
 .workspace-open #app-error{margin:8px 0 0}
 @media(max-width:700px){.workspace-open .shell{padding:10px}.workspace-open #apps-view{padding-top:8px}.workspace-open .heading h1{font-size:1.2rem}.workspace-open .heading p{display:none}.app-tab{padding:10px 12px;font-size:.84rem}}
+.header-actions{display:flex;align-items:center;gap:18px}
+.app-links{display:flex;gap:8px;min-width:0}
+#settings-tab{margin-left:auto}
+.settings-view{flex:1;min-height:0;overflow:auto;padding:22px;display:grid;grid-template-columns:minmax(330px,1.25fr) minmax(280px,.75fr);align-content:start;gap:18px;border:1px solid #294459;border-radius:0 12px 12px 12px;background:#101d2a}
+.settings-view[hidden],.program-workspace[hidden]{display:none}
+.setting-card{border:1px solid #294459;border-radius:15px;background:#162636;padding:22px}
+.setting-card h2{margin:0 0 10px;font-size:1.3rem}.setting-card h3{margin:24px 0 10px;font-size:1rem}
+.setting-card p{margin:0 0 16px;font-size:.89rem}
+.setting-card form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.setting-card form button{grid-column:1/-1}
+.setting-card select{width:100%;height:48px;border-radius:10px;border:1px solid #3a556b;background:#0a1520;color:#f4f9ff;padding:0 12px;font:inherit}
+.user-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #294459}
+.user-row button{border:1px solid #5b6470;border-radius:8px;padding:8px 11px;background:transparent;color:inherit;cursor:pointer}
+#settings-message{margin:13px 0}
+html[data-theme="light"] body{background:#f1f6fa;color:#162636}
+html[data-theme="light"] .login-card,html[data-theme="light"] .setting-card,html[data-theme="light"] .app-tab{background:#fff;color:#162636;border-color:#bdcbd6}
+html[data-theme="light"] .settings-view{background:#eef4f8;border-color:#bdcbd6}
+html[data-theme="light"] .app-tab.selected,html[data-theme="light"] .app-tab:hover{background:#d9f3fa;color:#102b39;border-color:#1184a6}
+html[data-theme="light"] .program-workspace,html[data-theme="light"] .user-row{border-color:#bdcbd6}
+html[data-theme="light"] input,html[data-theme="light"] .setting-card select{background:#f7fbff;color:#162636;border-color:#b2c5d1}
+html[data-theme="light"] p,html[data-theme="light"] footer{color:#526576}
+html[data-theme="light"] label{color:#273e50}
+@media(max-width:780px){.app-links{overflow-x:auto}.settings-view{grid-template-columns:1fr;padding:12px}.setting-card form{grid-template-columns:1fr}.setting-card{padding:17px}.workspace-open .heading h1{font-size:1.05rem}.app-tab{font-size:.78rem;padding:10px}.header-actions{gap:8px}}
+@supports(padding:env(safe-area-inset-top)){.workspace-open .shell{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}}

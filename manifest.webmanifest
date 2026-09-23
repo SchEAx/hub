@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Garage İstanbul Hub",
+  "short_name": "Garage Hub",
+  "description": "GarageFlow, KasaFlow ve Ekran programları tek yerde",
+  "lang": "tr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a1019",
+  "theme_color": "#101722",
+  "icons": [
+    {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

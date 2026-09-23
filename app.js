@@ -3,13 +3,16 @@ const KEY = "garage-hub-session-v1";
 const loginView = document.getElementById("login-view");
 const appsView = document.getElementById("apps-view");
 const logout = document.getElementById("logout");
+const settingsTab=document.getElementById("settings-tab");
+const settingsView=document.getElementById("settings-view");
+const workspace=document.getElementById("program-workspace");
 let token = sessionStorage.getItem(KEY) || "";
 let apps = [];
 const frames = new Map();
 const showLogin = message => {
   token = ""; sessionStorage.removeItem(KEY);
   frames.clear();document.body.classList.remove("workspace-open");
-  document.getElementById("program-workspace").replaceChildren();
+  workspace.replaceChildren();settingsView.hidden=true;
   loginView.hidden = false; appsView.hidden = true; logout.hidden = true;
   document.getElementById("login-error").textContent = message || "";
 };
@@ -21,6 +24,7 @@ async function request(url, options={}) {
 }
 async function showApps(user) {
   document.getElementById("welcome").textContent = `Hoş geldin, ${user.name}`;
+  settingsTab.hidden=!user.owner;
   document.body.classList.add("workspace-open");
   loginView.hidden=true;appsView.hidden=false;logout.hidden=false;
   document.getElementById("app-error").textContent="";
@@ -34,7 +38,7 @@ async function showApps(user) {
   const list = document.getElementById("apps");
   list.replaceChildren();
   frames.clear();
-  document.getElementById("program-workspace").replaceChildren();
+  workspace.replaceChildren();
   apps.forEach((item,index)=>{
     const button=document.createElement("button"); button.type="button"; button.className="app-tab";
     button.disabled=!item.configured;
@@ -49,7 +53,8 @@ function openApp(item){
   if(!item.configured)return;
   const url=new URL(item.url);
   if(url.protocol!=="https:") return;
-  const workspace=document.getElementById("program-workspace");
+  settingsView.hidden=true;workspace.hidden=false;
+  settingsTab.classList.remove("selected");
   if(!frames.has(item.id)){
     const iframe=document.createElement("iframe");
     iframe.className="program-frame";iframe.title=item.name;
@@ -59,13 +64,76 @@ function openApp(item){
     iframe.src=url.href;
   }
   for(const [id,{iframe}] of frames)iframe.hidden=id!==item.id;
-  document.querySelectorAll(".app-tab").forEach((button,index)=>{
+  document.querySelectorAll("#apps .app-tab").forEach((button,index)=>{
     const selected=apps[index].id===item.id;
     button.classList.toggle("selected",selected);
     button.setAttribute("aria-current",selected?"page":"false");
   });
   document.getElementById("app-error").textContent="";
 }
+settingsTab.addEventListener("click",async()=>{
+  if(settingsTab.hidden)return;
+  workspace.hidden=true;settingsView.hidden=false;
+  document.querySelectorAll("#apps .app-tab").forEach(button=>button.classList.remove("selected"));
+  settingsTab.classList.add("selected");
+  await loadUsers();
+});
+async function loadUsers(){
+  const list=document.getElementById("user-list");
+  const message=document.getElementById("settings-message");
+  list.replaceChildren();message.textContent="";
+  try{
+    const result=await request("/api/admin/users");
+    for(const user of result.users){
+      const row=document.createElement("div");row.className="user-row";
+      const label=document.createElement("span");label.textContent=`${user.name||user.username} · ${user.username}${user.owner?" · Sahip":""}`;
+      row.append(label);
+      if(!user.owner){
+        const revoke=document.createElement("button");revoke.type="button";revoke.textContent="Hub iznini kaldır";
+        revoke.addEventListener("click",async()=>{
+          if(!window.confirm(`${user.username} için hub erişimi kaldırılsın mı?`))return;
+          revoke.disabled=true;
+          try{await request(`/api/admin/users?username=${encodeURIComponent(user.username)}`,{method:"DELETE"});await loadUsers();}
+          catch(err){message.textContent=err.message;revoke.disabled=false;}
+        });
+        row.append(revoke);
+      }
+      list.append(row);
+    }
+  }catch(err){message.textContent=err.message;}
+}
+document.getElementById("user-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const form=event.currentTarget,button=form.querySelector("button[type=submit]");
+  const value=key=>form.elements.namedItem(key).value.trim();
+  button.disabled=true;
+  try{
+    const result=await request("/api/admin/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:value("username"),name:value("name"),role:value("role"),password:form.elements.namedItem("password").value})});
+    form.reset();await loadUsers();
+    document.getElementById("settings-message").textContent=result.message;
+  }catch(err){document.getElementById("settings-message").textContent=err.message;}
+  finally{button.disabled=false;form.elements.namedItem("password").value="";}
+});
+const themeSelect=document.getElementById("theme-select");
+const themeMedia=window.matchMedia("(prefers-color-scheme: light)");
+function applyTheme(){
+  const choice=themeSelect.value;
+  const light=choice==="light"||(choice==="system"&&themeMedia.matches);
+  document.documentElement.dataset.theme=light?"light":"dark";
+  document.querySelector('meta[name="theme-color"]').content=light?"#f1f6fa":"#101722";
+}
+try{themeSelect.value=localStorage.getItem("garage-hub-theme")||"system";}catch{}
+applyTheme();
+themeSelect.addEventListener("change",()=>{try{localStorage.setItem("garage-hub-theme",themeSelect.value);}catch{}applyTheme();});
+themeMedia.addEventListener?.("change",applyTheme);
+let deferredInstall;
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstall=event;document.getElementById("install-button").hidden=false;});
+document.getElementById("install-button").addEventListener("click",async()=>{
+  if(!deferredInstall)return;
+  deferredInstall.prompt();await deferredInstall.userChoice;
+  deferredInstall=null;document.getElementById("install-button").hidden=true;
+});
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 window.addEventListener("message",event=>{
   if(!token)return;
   const frame=[...frames.values()].find(({iframe,origin})=>event.source===iframe.contentWindow && event.origin===origin);
