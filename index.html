@@ -3,6 +3,6 @@
 <body><main class="shell">
   <header><div class="brand"><span class="mark">GI</span><span>GARAGE İSTANBUL</span></div><button id="logout" class="text-button" type="button" hidden>Çıkış yap</button></header>
   <section id="login-view" class="login-card"><div class="eyebrow">YÖNETİM GİRİŞİ</div><h1>Programlar</h1><p>Garage İstanbul hesabınla giriş yap.</p><form id="login-form"><label>Kullanıcı adı<input name="username" autocomplete="username" required></label><label>Şifre<input name="password" type="password" autocomplete="current-password" required></label><button id="login-button" type="submit">Giriş yap</button><p id="login-error" role="alert" class="error"></p></form></section>
-  <section id="apps-view" hidden><div class="heading"><div class="eyebrow">ÇALIŞMA ALANI</div><h1 id="welcome">Programlar</h1><p>Devam etmek istediğin programı aç.</p></div><div id="apps" class="app-grid"></div><p id="app-error" class="error" role="alert"></p></section>
+  <section id="apps-view" hidden><div class="heading"><div class="eyebrow">ÇALIŞMA ALANI</div><h1 id="welcome">Programlar</h1><p>Programlar arasında sekmelerden geçiş yap.</p></div><nav id="apps" class="app-tabs" aria-label="Programlar"></nav><div id="program-workspace" class="program-workspace"></div><p id="app-error" class="error" role="alert"></p></section>
   <footer>Garage İstanbul</footer>
 </main><script src="/app.js" defer></script></body></html>

@@ -5,9 +5,11 @@ const appsView = document.getElementById("apps-view");
 const logout = document.getElementById("logout");
 let token = sessionStorage.getItem(KEY) || "";
 let apps = [];
-let pending = null;
+const frames = new Map();
 const showLogin = message => {
   token = ""; sessionStorage.removeItem(KEY);
+  frames.clear();document.body.classList.remove("workspace-open");
+  document.getElementById("program-workspace").replaceChildren();
   loginView.hidden = false; appsView.hidden = true; logout.hidden = true;
   document.getElementById("login-error").textContent = message || "";
 };
@@ -19,6 +21,7 @@ async function request(url, options={}) {
 }
 async function showApps(user) {
   document.getElementById("welcome").textContent = `Hoş geldin, ${user.name}`;
+  document.body.classList.add("workspace-open");
   loginView.hidden=true;appsView.hidden=false;logout.hidden=false;
   document.getElementById("app-error").textContent="";
   try{
@@ -30,30 +33,45 @@ async function showApps(user) {
   }
   const list = document.getElementById("apps");
   list.replaceChildren();
+  frames.clear();
+  document.getElementById("program-workspace").replaceChildren();
   apps.forEach((item,index)=>{
-    const button=document.createElement("button"); button.type="button"; button.className="app-card";
+    const button=document.createElement("button"); button.type="button"; button.className="app-tab";
     button.disabled=!item.configured;
-    const number=document.createElement("span"); number.className="number";number.textContent=`0${index+1} / PROGRAM`;
-    const title=document.createElement("strong");title.textContent=item.name;
-    const action=document.createElement("span");action.className="open";action.textContent=item.configured?"Aç →":"Adres ayarlanmadı";
-    button.append(number,title,action);
+    button.textContent=item.configured?item.name:`${item.name} · Adres ayarlanmadı`;
+    button.setAttribute("aria-label",`${index+1}. program: ${item.name}`);
     button.addEventListener("click",()=>openApp(item));list.append(button);
   });
+  const first=apps.find(item=>item.configured);
+  if(first)openApp(first);
 }
 function openApp(item){
   if(!item.configured)return;
   const url=new URL(item.url);
   if(url.protocol!=="https:") return;
-  const target=window.open(url.href,"_blank");
-  if(!target) {document.getElementById("app-error").textContent="Tarayıcı yeni pencereyi engelledi. Açılır pencerelere izin ver.";return;}
-  pending={target,origin:url.origin,expires:Date.now()+30000};
+  const workspace=document.getElementById("program-workspace");
+  if(!frames.has(item.id)){
+    const iframe=document.createElement("iframe");
+    iframe.className="program-frame";iframe.title=item.name;
+    iframe.referrerPolicy="strict-origin-when-cross-origin";
+    workspace.append(iframe);
+    frames.set(item.id,{iframe,origin:url.origin});
+    iframe.src=url.href;
+  }
+  for(const [id,{iframe}] of frames)iframe.hidden=id!==item.id;
+  document.querySelectorAll(".app-tab").forEach((button,index)=>{
+    const selected=apps[index].id===item.id;
+    button.classList.toggle("selected",selected);
+    button.setAttribute("aria-current",selected?"page":"false");
+  });
   document.getElementById("app-error").textContent="";
 }
 window.addEventListener("message",event=>{
-  if(!pending || !token || Date.now()>pending.expires || event.source!==pending.target || event.origin!==pending.origin) return;
+  if(!token)return;
+  const frame=[...frames.values()].find(({iframe,origin})=>event.source===iframe.contentWindow && event.origin===origin);
+  if(!frame)return;
   if(event.data?.type!=="garage-hub:ready" || typeof event.data.nonce!=="string" || !/^[a-f0-9]{32}$/.test(event.data.nonce)) return;
-  pending.target.postMessage({type:"garage-hub:session",nonce:event.data.nonce,token},pending.origin);
-  pending=null;
+  event.source.postMessage({type:"garage-hub:session",nonce:event.data.nonce,token},event.origin);
 });
 document.getElementById("login-form").addEventListener("submit",async event=>{
   event.preventDefault();
