@@ -1,5 +1,5 @@
 "use strict";
-const CACHE="garage-hub-shell-v1.3.0";
+const CACHE="garage-hub-shell-v1.3.1";
 const SHELL=["/","/index.html","/style.css","/app.js","/manifest.webmanifest","/icon-192.png","/icon-512.png","/apple-touch-icon.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));

@@ -12,6 +12,7 @@ const frames = new Map();
 const showLogin = message => {
   token = ""; sessionStorage.removeItem(KEY);
   frames.clear();document.body.classList.remove("workspace-open");
+  document.documentElement.classList.remove("hub-viewport-lock");
   workspace.replaceChildren();settingsView.hidden=true;
   loginView.hidden = false; appsView.hidden = true; logout.hidden = true;
   document.getElementById("login-error").textContent = message || "";
@@ -26,6 +27,8 @@ async function showApps(user) {
   document.getElementById("welcome").textContent = `Hoş geldin, ${user.name}`;
   settingsTab.hidden=!user.owner;
   document.body.classList.add("workspace-open");
+  document.documentElement.classList.add("hub-viewport-lock");
+  window.scrollTo(0,0);
   loginView.hidden=true;appsView.hidden=false;logout.hidden=false;
   document.getElementById("app-error").textContent="";
   try{
@@ -70,6 +73,7 @@ function openApp(item){
     button.setAttribute("aria-current",selected?"page":"false");
   });
   document.getElementById("app-error").textContent="";
+  window.scrollTo(0,0);
 }
 settingsTab.addEventListener("click",async()=>{
   if(settingsTab.hidden)return;
